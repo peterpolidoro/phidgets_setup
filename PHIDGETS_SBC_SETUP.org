@@ -2,30 +2,134 @@
 #+AUTHOR: Peter Polidoro
 #+EMAIL: peterpolidoro@gmail.com
 
-* Install Git
+* Phidgets SBC User Guide
 
-** Debian-based Systems
+  [[https://www.phidgets.com/docs/SBC3003_User_Guide][PhidgetSBC4 User Guide]]
 
-   #+BEGIN_SRC sh
-sudo apt-get install git
-   #+END_SRC
+* Setup Host Computer
 
-** Download if Not in Repositories
+  Install latest Phidget drivers on your host machine.
 
-   [[https://git-scm.com/downloads]]
+** Windows
 
-* Setup Git
+   [[https://www.phidgets.com/downloads/phidget22/libraries/windows/Phidget22-x86.exe][32 Bit Installer Download]]
 
-** Set username and email address for every repository
+   [[https://www.phidgets.com/downloads/phidget22/libraries/windows/Phidget22-x64.exe][64 Bit Installer Download]]
 
-   #+BEGIN_SRC sh
-git config --global user.name "Mona Lisa"
-git config --global user.email "email@example.com"
-   #+END_SRC
+** MacOS
 
-** Set username and email address for a single repository
+   [[https://www.phidgets.com/downloads/phidget22/libraries/macos/Phidget22.dmg][macOS Installer Download]]
 
-   #+BEGIN_SRC sh
-git config user.name "Mona Lisa"
-git config user.email "email@example.com"
-   #+END_SRC
+** Linux
+
+*** Install Phidget Drivers
+
+    #+BEGIN_SRC sh
+      sudo apt-get install build-essential
+      sudo apt-get install libusb-1.0-0-dev
+    #+END_SRC
+
+    #+BEGIN_SRC sh
+      mkdir -p ~/Downloads/phidget/
+    #+END_SRC
+
+**** Main Library
+
+     Download this file to ~/Downloads/phidget/
+
+     [[https://www.phidgets.com/downloads/phidget22/libraries/linux/libphidget22.tar.gz][libphidget22]]
+
+     #+BEGIN_SRC sh
+       cd ~/Downloads/phidget
+       tar -xvzf libphidget22-*.tar.gz
+       cd libphidget22-*/
+       ./configure
+       make
+       sudo make install
+       sudo cp plat/linux/udev/99-libphidget22.rules /etc/udev/rules.d
+       echo /usr/local/lib | sudo tee -a /etc/ld.so.conf && sudo ldconfig
+     #+END_SRC
+
+**** Extra
+
+     Download this file to ~/Downloads/phidget/
+
+     [[https://www.phidgets.com/downloads/phidget22/libraries/linux/libphidget22extra.tar.gz][libphidget22extra]]
+
+     #+BEGIN_SRC sh
+       cd ~/Downloads/phidget
+       tar -xvzf libphidget22extra-*.tar.gz
+       cd libphidget22extra-*/
+       ./configure
+       make
+       sudo make install
+     #+END_SRC
+
+**** Admin
+
+     Download this file to ~/Downloads/phidget/
+
+     [[https://www.phidgets.com/downloads/phidget22/tools/linux/phidget22admin.tar.gz][phidget22admin]]
+
+     #+BEGIN_SRC sh
+       cd ~/Downloads/phidget
+       tar -xvzf phidget22admin-*.tar.gz
+       cd phidget22admin-*/
+       ./configure
+       make
+       sudo make install
+     #+END_SRC
+
+**** Network Server
+
+     Download this file to ~/Downloads/phidget/
+
+     [[https://www.phidgets.com/downloads/phidget22/servers/linux/phidget22networkserver.tar.gz][phidget22networkserver]]
+
+     #+BEGIN_SRC sh
+       cd ~/Downloads/phidget
+       tar -xvzf phidget22networkserver-*.tar.gz
+       cd phidget22networkserver-*/
+       ./configure
+       make
+       sudo make install
+       sudo mkdir -p /etc/phidgets
+       sudo cp files/etc/phidgets/* /etc/phidgets/
+     #+END_SRC
+
+*** Reboot Host
+
+    #+BEGIN_SRC sh
+      sudo reboot now
+    #+END_SRC
+
+* Connect to SBC
+
+    1. Connect your SBC to your network using the Ethernet cable.
+    2. Connect your SBC to power. A red LED will immediately light up underneath
+       the power barrel, indicating your SBC is receiving power. There is also a
+       green LED that will briefly turn on when power is supplied, and then
+       remain on after the SBC has fully booted.
+
+** Find SBC IP Address
+
+*** Linux
+
+    #+BEGIN_SRC sh
+      phidget22admin -s
+    #+END_SRC
+
+    Example output:
+
+    #+BEGIN_SRC sh
+      Phidget22 Web Server listener phidgetsbc Phidget22 WWW Server phidgetsbc Phidget22 WWW Server:8080 192.168.0.56
+      Phidget SBC        PhidgetSBC (00:1b:0b:10:33:9f) PhidgetSBC (00:1b:0b:10:33:9f):80 192.168.0.56
+      Phidget22 Server   phidgetsbc                     phidgetsbc:5661          192.168.0.56
+    #+END_SRC
+
+    Make note of IP address (example 192.168.0.56).
+
+** SBC Web Interface
+
+   1. Open a browser to IP address (example 192.168.0.56).
+   2. Make new password.
