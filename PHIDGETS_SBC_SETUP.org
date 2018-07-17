@@ -136,6 +136,7 @@
    1. Open a browser to IP address (example 192.168.0.56).
    2. Make new password.
    3. Navigate to Network / Settings and enable SSH Server.
+   4. Navigate to System / Packages and check Include full Debian Package Repository
 
 ** SBC SSH Interface
 
@@ -144,3 +145,24 @@
    #+BEGIN_SRC sh
      ssh root@phidgetsbc.local
    #+END_SRC
+
+*** Update Packages
+
+    #+BEGIN_SRC sh
+      apt-get update
+      apt-get dist-upgrade
+    #+END_SRC
+
+*** Setup Python
+
+    #+BEGIN_SRC sh
+      apt-get install python3
+      apt-get install wget
+      apt-get install unzip
+      mkdir Downloads
+      cd ~/Downloads
+      wget https://www.phidgets.com/downloads/phidget22/libraries/any/Phidget22Python.zip
+      unzip Phidget22Python.zip
+      cd Phidget22Python/
+      python3 setup.py install
+    #+END_SRC
