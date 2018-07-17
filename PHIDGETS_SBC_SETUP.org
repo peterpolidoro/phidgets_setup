@@ -105,11 +105,11 @@
 
 * Connect to SBC
 
-    1. Connect your SBC to your network using the Ethernet cable.
-    2. Connect your SBC to power. A red LED will immediately light up underneath
-       the power barrel, indicating your SBC is receiving power. There is also a
-       green LED that will briefly turn on when power is supplied, and then
-       remain on after the SBC has fully booted.
+  1. Connect your SBC to your network using the Ethernet cable.
+  2. Connect your SBC to power. A red LED will immediately light up underneath
+     the power barrel, indicating your SBC is receiving power. There is also a
+     green LED that will briefly turn on when power is supplied, and then
+     remain on after the SBC has fully booted.
 
 ** Find SBC IP Address
 
@@ -131,5 +131,16 @@
 
 ** SBC Web Interface
 
+   Web Interface Username: admin
+
    1. Open a browser to IP address (example 192.168.0.56).
    2. Make new password.
+   3. Navigate to Network / Settings and enable SSH Server.
+
+** SBC SSH Interface
+
+   SSH Interface Username: root
+
+   #+BEGIN_SRC sh
+     ssh root@phidgetsbc.local
+   #+END_SRC
