@@ -103,7 +103,7 @@
       sudo reboot now
     #+END_SRC
 
-* Connect to SBC
+* Setup SBC
 
   1. Connect your SBC to your network using the Ethernet cable.
   2. Connect your SBC to power. A red LED will immediately light up underneath
@@ -146,23 +146,34 @@
      ssh root@phidgetsbc.local
    #+END_SRC
 
-*** Update Packages
+** Update Packages
 
     #+BEGIN_SRC sh
       apt-get update
       apt-get dist-upgrade
     #+END_SRC
 
-*** Setup Python
+** Setup Python
 
     #+BEGIN_SRC sh
       apt-get install python3
       apt-get install wget
       apt-get install unzip
+      apt-get install -y python3-pip
+      pip3 install ipython
       mkdir Downloads
       cd ~/Downloads
       wget https://www.phidgets.com/downloads/phidget22/libraries/any/Phidget22Python.zip
       unzip Phidget22Python.zip
       cd Phidget22Python/
       python3 setup.py install
+    #+END_SRC
+
+*** Test Python
+
+    #+BEGIN_SRC sh
+      cd ~/Downloads/
+      wget https://www.phidgets.com/downloads/phidget22/examples/python/Manager/Phidget22_HelloWorld_Python_Ex.zip
+      unzip Phidget22_HelloWorld_Python_Ex.zip -d Phidget22_HelloWorld_Python
+      python3 ./Phidget22_HelloWorld_Python/HelloWorld.py
     #+END_SRC
