@@ -183,3 +183,9 @@
    #+BEGIN_SRC sh
      apt-get install git
    #+END_SRC
+
+** Emac Tramp Into SBC
+
+   #+BEGIN_SRC
+     C-x C-f /ssh:root@IPADDRESS:/root/
+   #+END_SRC
