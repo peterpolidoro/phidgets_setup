@@ -182,6 +182,8 @@
 
    #+BEGIN_SRC sh
      apt-get install git
+     git config --global user.name "Mona Lisa"
+     git config --global user.email "email@example.com"
    #+END_SRC
 
 ** Emac Tramp Into SBC
