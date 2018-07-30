@@ -167,10 +167,9 @@
       apt-get install sudo -y
       adduser phidget
       usermod -aG sudo phidget
-      exit
     #+END_SRC
 
-*** Install Additional Packages
+*** Setup phidget User and Install Additional Packages
 
 **** SSH into Phidget SBC as phidget
 
@@ -178,6 +177,15 @@
 
     #+BEGIN_SRC sh
       ssh phidget@192.168.0.56
+    #+END_SRC
+
+**** Grant phidget User Permission to Use the SPI vinthub
+
+    #+BEGIN_SRC sh
+      echo 'SUBSYSTEM=="vinthub", GROUP="vinthubuser", MODE="0660"' | sudo tee /etc/udev/rules.d/50-vinthub.rules
+      sudo groupadd vinthubuser
+      sudo adduser "$USER" vinthubuser
+      sudo reboot
     #+END_SRC
 
 **** Install Additional Packages
