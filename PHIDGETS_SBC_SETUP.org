@@ -148,76 +148,84 @@
 
 **** SSH into Phidget SBC as root
 
-    Open a terminal on the host computer and ssh into the Phidget SBC.
+     Open a terminal on the host computer and ssh into the Phidget SBC.
 
-    #+BEGIN_SRC sh
-      ssh root@192.168.0.56
-    #+END_SRC
+     #+BEGIN_SRC sh
+       ssh root@192.168.0.56
+     #+END_SRC
 
 **** Update Packages
 
-    #+BEGIN_SRC sh
-      apt-get update
-      apt-get dist-upgrade
-    #+END_SRC
+     #+BEGIN_SRC sh
+       apt-get update
+       apt-get dist-upgrade
+     #+END_SRC
 
 **** Add New User and Grant Sudo Privileges
 
-    #+BEGIN_SRC sh
-      apt-get install sudo -y
-      adduser phidget
-      usermod -aG sudo phidget
-    #+END_SRC
+     #+BEGIN_SRC sh
+       apt-get install sudo -y
+       adduser phidget
+       usermod -aG sudo phidget
+     #+END_SRC
 
 *** Setup phidget User and Install Additional Packages
 
 **** SSH into Phidget SBC as phidget
 
-    Open a terminal on the host computer and ssh into the Phidget SBC.
+     Open a terminal on the host computer and ssh into the Phidget SBC.
 
-    #+BEGIN_SRC sh
-      ssh phidget@192.168.0.56
-    #+END_SRC
-
-**** Grant phidget User Permission to Use the SPI vinthub
-
-    #+BEGIN_SRC sh
-      echo 'SUBSYSTEM=="vinthub", GROUP="vinthubuser", MODE="0660"' | sudo tee /etc/udev/rules.d/50-vinthub.rules
-      sudo groupadd vinthubuser
-      sudo adduser "$USER" vinthubuser
-      sudo reboot
-    #+END_SRC
+     #+BEGIN_SRC sh
+       ssh phidget@192.168.0.56
+     #+END_SRC
 
 **** Install Additional Packages
 
-    #+BEGIN_SRC sh
-      sudo apt-get install -y python3 wget unzip git python3-venv
-    #+END_SRC
+     #+BEGIN_SRC sh
+       sudo apt-get install -y python3 wget unzip git python3-venv
+     #+END_SRC
+
+**** Grant phidget User Permission to Use Phidgets
+
+     #+BEGIN_SRC sh
+       echo 'SUBSYSTEM=="vinthub", GROUP="vinthubuser", MODE="0660"' | sudo tee /etc/udev/rules.d/50-vinthub.rules
+       sudo groupadd vinthubuser
+       sudo adduser "$USER" vinthubuser
+       sudo reboot
+     #+END_SRC
+
+**** Create Mount Point for Media
+
+     #+BEGIN_SRC sh
+       sudo mkdir -p /media/$USER
+       sudo chown $USER /media/$USER
+       sudo chmod 0777 /media/$USER
+     #+END_SRC
 
 **** Setup Python
 
-   #+BEGIN_SRC sh
-     mkdir ~/venvs
-     python3 -m venv ~/venvs/phidget
-     echo 'source ~/venvs/phidget/bin/activate' >> ~/.bashrc
-     source ~/.bashrc
-     pip install pip --upgrade
-     mkdir ~/Downloads
-     cd ~/Downloads
-     wget https://www.phidgets.com/downloads/phidget22/libraries/any/Phidget22Python.zip
-     unzip Phidget22Python.zip
-     cd Phidget22Python/
-     pip install .
-   #+END_SRC
+     #+BEGIN_SRC sh
+       mkdir ~/venvs
+       python3 -m venv ~/venvs/phidget
+       echo 'source ~/venvs/phidget/bin/activate' >> ~/.bashrc
+       source ~/.bashrc
+       pip install pip --upgrade
+       mkdir ~/Downloads
+       cd ~/Downloads
+       wget https://www.phidgets.com/downloads/phidget22/libraries/any/Phidget22Python.zip
+       unzip Phidget22Python.zip
+       cd Phidget22Python/
+       pip install .
+     #+END_SRC
 
 **** Test Python
 
-    #+BEGIN_SRC sh
-      cd ~/Downloads/
-      wget https://www.phidgets.com/downloads/phidget22/examples/python/Manager/Phidget22_HelloWorld_Python_Ex.zip
-      unzip Phidget22_HelloWorld_Python_Ex.zip -d Phidget22_HelloWorld_Python
-      python3 ./Phidget22_HelloWorld_Python/HelloWorld.py
-    #+END_SRC
+     #+BEGIN_SRC sh
+       cd ~/Downloads/
+       wget https://www.phidgets.com/downloads/phidget22/examples/python/Manager/Phidget22_HelloWorld_Python_Ex.zip
+       unzip Phidget22_HelloWorld_Python_Ex.zip -d Phidget22_HelloWorld_Python
+       python3 ./Phidget22_HelloWorld_Python/HelloWorld.py
+     #+END_SRC
 
 ** Emacs Tramp Into SBC
 
