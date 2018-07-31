@@ -105,13 +105,55 @@
 
 * Setup SBC
 
-** Connect to the Network
+** Flash SBC SD Card Image
 
-   1. Connect your SBC to your network using the Ethernet cable.
-   2. Connect your SBC to power. A red LED will immediately light up underneath
-      the power barrel, indicating your SBC is receiving power. There is also a
-      green LED that will briefly turn on when power is supplied, and then
-      remain on after the SBC has fully booted.
+***  Host Computer
+
+    #+BEGIN_SRC sh
+      cd ~/Downloads
+      wget https://www.phidgets.com/downloads/phidgetsbc/SBC3003/phidgetsbc4.zip
+      unzip phidgetsbc4.zip
+    #+END_SRC
+
+    Plug SD card into host computer and run:
+
+    #+BEGIN_SRC sh
+      df -h
+    #+END_SRC
+
+    After verifying which device is your SD card (e.g. /dev/sdd1), unmount it
+    using the following command:
+
+    #+BEGIN_SRC sh
+      umount /dev/sdd1
+    #+END_SRC
+
+    Next, we can write the image file to the SD card (be very careful using dd!):
+    - if= path to your image
+    - of = where to write output (note: do not include partition number)
+
+    Wait for a long time for command to finish.
+
+    #+BEGIN_SRC sh
+      sudo dd if=~/Downloads/phidgetsbc4_1.1.0.20180619.img of=/dev/sdd bs=4M
+    #+END_SRC
+
+    When dd has finished unmount the SD card:
+
+    #+BEGIN_SRC sh
+      df -h
+      sudo umount /media/<user>/sdd1
+    #+END_SRC
+
+    Remove SD card and insert it into the PhidgetSBC.
+
+** Connect Phidget SBC to the Network
+
+   1. Connect your Phidget SBC to your network using the Ethernet cable.
+   2. Connect your Phidget SBC to power. A red LED will immediately light up
+      underneath the power barrel, indicating your Phidget SBC is receiving
+      power. There is also a green LED that will briefly turn on when power is
+      supplied, and then remain on after the SBC has fully booted.
 
 ** Find Phidget SBC IP Address
 
@@ -135,11 +177,13 @@
 
    Web Interface Username: admin
 
-   1. Open a browser on host computer to Phidget SBC IP address of (example 192.168.0.56).
+   1. Open a browser on host computer to Phidget SBC IP address of (example
+      192.168.0.56).
    2. Make new password.
-   3. Navigate to Network / Settings and enable SSH Server.
-   4. Navigate to System / Packages and check Include full Debian Package Repository
-   5. Navigate to System / General and set the correct time zone.
+   3. Navigate to Network / Settings and enable SSH Server and Save Changes.
+   4. Navigate to System / Packages and check Include full Debian Package
+      Repository and Save Changes.
+   5. Navigate to System / General and set the correct time zone and Save Changes.
    6. Log out.
 
 ** Setup with SBC SSH Interface
@@ -154,6 +198,13 @@
        ssh root@192.168.0.56
      #+END_SRC
 
+**** Expand SD Card File System
+
+     #+BEGIN_SRC sh
+       cd /
+       ./expandfs.sh
+     #+END_SRC
+
 **** Update Packages
 
      #+BEGIN_SRC sh
@@ -164,9 +215,10 @@
 **** Add New User and Grant Sudo Privileges
 
      #+BEGIN_SRC sh
-       apt-get install sudo -y
+       apt-get install -y sudo
        adduser phidget
        usermod -aG sudo phidget
+       exit
      #+END_SRC
 
 *** Setup phidget User and Install Additional Packages
@@ -182,7 +234,16 @@
 **** Install Additional Packages
 
      #+BEGIN_SRC sh
-       sudo apt-get install -y python3 wget unzip git python3-venv
+       sudo apt-get install -y wget unzip git
+     #+END_SRC
+
+**** Enable Bash Completion
+
+     #+BEGIN_SRC sh
+       sudo apt-get install -y bash-completion
+       echo 'if [ -f /etc/bash_completion ]; then' | sudo tee -a /etc/profile
+       echo ' . /etc/bash_completion' | sudo tee -a /etc/profile
+       echo 'fi' | sudo tee -a /etc/profile
      #+END_SRC
 
 **** Grant phidget User Permission to Use Phidgets
@@ -194,17 +255,19 @@
        sudo reboot
      #+END_SRC
 
-**** Create Mount Point for Media
+**** Setup USB Stick Mounting
 
      #+BEGIN_SRC sh
-       sudo mkdir -p /media/$USER
-       sudo chown $USER /media/$USER
-       sudo chmod 0777 /media/$USER
+       sudo apt-get install -y ntfs-3g
+       sudo sed -i 's/FILESYSTEMS="vfat ext2 ext3 ext4 hfsplus"/FILESYSTEMS="vfat ext2 ext3 ext4 hfsplus ntfs fuseblk"/' /etc/usbmount/usbmount.conf
+       sudo sed -i 's/FS_MOUNTOPTIONS=""/FS_MOUNTOPTIONS="-fstype=ntfs-3g,nls=utf8,umask=007,gid=46 -fstype=fuseblk,nls=utf8,umask=007,gid=46 -fstype=vfat,gid=1000,uid=1000,umask=007"/' /etc/usbmount/usbmount.conf
+       sudo reboot
      #+END_SRC
 
 **** Setup Python
 
      #+BEGIN_SRC sh
+       sudo apt-get install -y python3 python3-venv
        mkdir ~/venvs
        python3 -m venv ~/venvs/phidget
        echo 'source ~/venvs/phidget/bin/activate' >> ~/.bashrc
@@ -221,7 +284,7 @@
 **** Test Python
 
      #+BEGIN_SRC sh
-       cd ~/Downloads/
+       cd ~/Downloads
        wget https://www.phidgets.com/downloads/phidget22/examples/python/Manager/Phidget22_HelloWorld_Python_Ex.zip
        unzip Phidget22_HelloWorld_Python_Ex.zip -d Phidget22_HelloWorld_Python
        python3 ./Phidget22_HelloWorld_Python/HelloWorld.py
