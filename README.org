@@ -8,4 +8,6 @@
 
 * Documentation
 
-  [[./PHIDGETS_SBC_SETUP.org]]
+  [[./PHIDGET_SBC_SETUP.org]]
+
+  [[./PHIDGET_SNAPS.org]]

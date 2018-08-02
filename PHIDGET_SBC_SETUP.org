@@ -1,8 +1,8 @@
-#+TITLE: Phidgets SBC Setup
+#+TITLE: Phidget SBC Setup
 #+AUTHOR: Peter Polidoro
 #+EMAIL: peterpolidoro@gmail.com
 
-* Phidgets SBC User Guide
+* Phidget SBC User Guide
 
   [[https://www.phidgets.com/docs/SBC3003_User_Guide][PhidgetSBC4 User Guide]]
 
@@ -135,14 +135,13 @@
     Wait for a long time for command to finish.
 
     #+BEGIN_SRC sh
-      sudo dd if=~/Downloads/phidgetsbc4_1.1.0.20180619.img of=/dev/sdd bs=4M
+      sudo dd if=~/Downloads/phidgetsbc4_1.1.0.20180619.img of=/dev/sdd bs=4M status=progress
     #+END_SRC
 
     When dd has finished unmount the SD card:
 
     #+BEGIN_SRC sh
-      df -h
-      sudo umount /media/<user>/sdd1
+      umount /dev/sdd1
     #+END_SRC
 
     Remove SD card and insert it into the PhidgetSBC.
@@ -183,16 +182,23 @@
    3. Navigate to Network / Settings and enable SSH Server and Save Changes.
    4. Navigate to System / Packages and check Include full Debian Package
       Repository and Save Changes.
-   5. Navigate to System / General and set the correct time zone and Save Changes.
-   6. Log out.
+   5. Navigate to System / Packages and Install C/C++ Development Tools/Headers.
+   6. Navigate to System / General and set the correct time zone and Save Changes.
+   7. Log out.
 
 ** Setup with SBC SSH Interface
 
 *** Create New User
 
-**** SSH into Phidget SBC as root
+**** SSH into Phidget SBC as root from Host Computer
 
-     Open a terminal on the host computer and ssh into the Phidget SBC.
+     Remove old SSH key for IP Address if necessary.
+
+     #+BEGIN_SRC sh
+       ssh-keygen -f "/home/$USER/.ssh/known_hosts" -R "192.168.0.56"
+     #+END_SRC
+
+     SSH into the Phidget SBC.
 
      #+BEGIN_SRC sh
        ssh root@192.168.0.56
@@ -200,12 +206,22 @@
 
 **** Expand SD Card File System
 
+     On SBC:
+
      #+BEGIN_SRC sh
        cd /
        ./expandfs.sh
      #+END_SRC
 
 **** Update Packages
+
+     SSH into the Phidget SBC again.
+
+     #+BEGIN_SRC sh
+       ssh root@192.168.0.56
+     #+END_SRC
+
+     On SBC:
 
      #+BEGIN_SRC sh
        apt-get update
@@ -231,12 +247,6 @@
        ssh phidget@192.168.0.56
      #+END_SRC
 
-**** Install Additional Packages
-
-     #+BEGIN_SRC sh
-       sudo apt-get install -y wget unzip git
-     #+END_SRC
-
 **** Enable Bash Completion
 
      #+BEGIN_SRC sh
@@ -252,7 +262,6 @@
        echo 'SUBSYSTEM=="vinthub", GROUP="vinthubuser", MODE="0660"' | sudo tee /etc/udev/rules.d/50-vinthub.rules
        sudo groupadd vinthubuser
        sudo adduser "$USER" vinthubuser
-       sudo reboot
      #+END_SRC
 
 **** Setup USB Stick Mounting
@@ -261,33 +270,14 @@
        sudo apt-get install -y ntfs-3g
        sudo sed -i 's/FILESYSTEMS="vfat ext2 ext3 ext4 hfsplus"/FILESYSTEMS="vfat ext2 ext3 ext4 hfsplus ntfs fuseblk"/' /etc/usbmount/usbmount.conf
        sudo sed -i 's/FS_MOUNTOPTIONS=""/FS_MOUNTOPTIONS="-fstype=ntfs-3g,nls=utf8,umask=007,gid=46 -fstype=fuseblk,nls=utf8,umask=007,gid=46 -fstype=vfat,gid=1000,uid=1000,umask=007"/' /etc/usbmount/usbmount.conf
+     #+END_SRC
+
+**** Setup Snap
+
+     #+BEGIN_SRC sh
+       sudo apt-get install -y snapd
+       sudo snap install core
        sudo reboot
-     #+END_SRC
-
-**** Setup Python
-
-     #+BEGIN_SRC sh
-       sudo apt-get install -y python3 python3-venv
-       mkdir ~/venvs
-       python3 -m venv ~/venvs/phidget
-       echo 'source ~/venvs/phidget/bin/activate' >> ~/.bashrc
-       source ~/.bashrc
-       pip install pip --upgrade
-       mkdir ~/Downloads
-       cd ~/Downloads
-       wget https://www.phidgets.com/downloads/phidget22/libraries/any/Phidget22Python.zip
-       unzip Phidget22Python.zip
-       cd Phidget22Python/
-       pip install .
-     #+END_SRC
-
-**** Test Python
-
-     #+BEGIN_SRC sh
-       cd ~/Downloads
-       wget https://www.phidgets.com/downloads/phidget22/examples/python/Manager/Phidget22_HelloWorld_Python_Ex.zip
-       unzip Phidget22_HelloWorld_Python_Ex.zip -d Phidget22_HelloWorld_Python
-       python3 ./Phidget22_HelloWorld_Python/HelloWorld.py
      #+END_SRC
 
 ** Emacs Tramp Into SBC
