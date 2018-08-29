@@ -8,9 +8,9 @@
 
 *** Setup Snapcraft
 
-     #+BEGIN_SRC sh
-       snap install snapcraft --classic
-     #+END_SRC
+    #+BEGIN_SRC sh
+      snap install snapcraft --classic
+    #+END_SRC
 
 *** Setup LXD
 
@@ -24,23 +24,29 @@
 
 *** Test Snapcraft
 
-     #+BEGIN_SRC sh
-       mkdir test-snapcraft
-       cd test-snapcraft
-       snapcraft init
-       env SNAPCRAFT_BUILD_INFO=1 snapcraft cleanbuild
-     #+END_SRC
+    #+BEGIN_SRC sh
+      mkdir test-snapcraft
+      cd test-snapcraft
+      snapcraft init
+      env SNAPCRAFT_BUILD_INFO=1 snapcraft cleanbuild
+    #+END_SRC
 
 * Build Snaps
 
-    #+BEGIN_SRC sh
-      sudo apt-get install build-essential
-      sudo apt-get install libusb-1.0-0-dev
-    #+END_SRC
+  #+BEGIN_SRC sh
+    snapcraft cleanbuild
+  #+END_SRC
 
-    #+BEGIN_SRC sh
-      mkdir -p ~/Downloads/phidget/
-    #+END_SRC
+* Old Code
+
+  #+BEGIN_SRC sh
+    sudo apt-get install build-essential
+    sudo apt-get install libusb-1.0-0-dev
+  #+END_SRC
+
+  #+BEGIN_SRC sh
+    mkdir -p ~/Downloads/phidget/
+  #+END_SRC
 
 **** Setup Python
 
