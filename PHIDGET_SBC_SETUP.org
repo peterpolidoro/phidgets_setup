@@ -103,7 +103,7 @@
       sudo reboot now
     #+END_SRC
 
-* Setup SBC
+* Setup Phidget SBC
 
 ** Flash SBC SD Card Image
 
@@ -270,14 +270,6 @@
        sudo apt-get install -y ntfs-3g
        sudo sed -i 's/FILESYSTEMS="vfat ext2 ext3 ext4 hfsplus"/FILESYSTEMS="vfat ext2 ext3 ext4 hfsplus ntfs fuseblk"/' /etc/usbmount/usbmount.conf
        sudo sed -i 's/FS_MOUNTOPTIONS=""/FS_MOUNTOPTIONS="-fstype=ntfs-3g,nls=utf8,umask=007,gid=46 -fstype=fuseblk,nls=utf8,umask=007,gid=46 -fstype=vfat,gid=1000,uid=1000,umask=007"/' /etc/usbmount/usbmount.conf
-     #+END_SRC
-
-**** Setup Snap
-
-     #+BEGIN_SRC sh
-       sudo apt-get install -y snapd
-       sudo snap install core
-       sudo reboot
      #+END_SRC
 
 ** Emacs Tramp Into SBC
