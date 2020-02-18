@@ -135,7 +135,7 @@
     Wait for a long time for command to finish.
 
     #+BEGIN_SRC sh
-      sudo dd if=~/Downloads/phidgetsbc4_1.1.0.20180619.img of=/dev/sdd bs=4M status=progress
+      sudo dd if=~/Downloads/phidgetsbc4_1.2.1.20190509.img of=/dev/sdd bs=4M status=progress
     #+END_SRC
 
     When dd has finished unmount the SD card:
@@ -182,9 +182,8 @@
    3. Navigate to Network / Settings and enable SSH Server and Save Changes.
    4. Navigate to System / Packages and check Include full Debian Package
       Repository and Save Changes.
-   5. Navigate to System / Packages and Install C/C++ Development Tools/Headers.
-   6. Navigate to System / General and set the correct time zone and Save Changes.
-   7. Log out.
+   5. Navigate to System / General and set the correct time zone and Save Changes.
+   6. Log out.
 
 ** Setup with SBC SSH Interface
 
@@ -198,13 +197,13 @@
        ssh-keygen -f "/home/$USER/.ssh/known_hosts" -R "192.168.0.56"
      #+END_SRC
 
+**** Expand SD Card File System
+
      SSH into the Phidget SBC.
 
      #+BEGIN_SRC sh
        ssh root@192.168.0.56
      #+END_SRC
-
-**** Expand SD Card File System
 
      On SBC:
 
@@ -224,14 +223,21 @@
      On SBC:
 
      #+BEGIN_SRC sh
-       apt-get update
-       apt-get dist-upgrade
+       apt update
+       apt full-upgrade
+       reboot
      #+END_SRC
 
 **** Add New User and Grant Sudo Privileges
 
+     SSH into the Phidget SBC again.
+
      #+BEGIN_SRC sh
-       apt-get install -y sudo
+       ssh root@192.168.0.56
+     #+END_SRC
+
+     #+BEGIN_SRC sh
+       apt install -y sudo
        adduser phidget
        usermod -aG sudo phidget
        exit
@@ -247,10 +253,19 @@
        ssh phidget@192.168.0.56
      #+END_SRC
 
+**** Export Locales
+
+     #+BEGIN_SRC sh
+       echo "export LANGUAGE=en_US.UTF-8">>~/.bashrc
+       echo "export LANG=en_US.UTF-8">>~/.bashrc
+       echo "export LC_ALL=en_US.UTF-8">>~/.bashrc
+       sudo reboot
+     #+END_SRC
+
 **** Enable Bash Completion
 
      #+BEGIN_SRC sh
-       sudo apt-get install -y bash-completion
+       sudo apt install -y bash-completion
        echo 'if [ -f /etc/bash_completion ]; then' | sudo tee -a /etc/profile
        echo ' . /etc/bash_completion' | sudo tee -a /etc/profile
        echo 'fi' | sudo tee -a /etc/profile
@@ -267,10 +282,134 @@
 **** Setup USB Stick Mounting
 
      #+BEGIN_SRC sh
-       sudo apt-get install -y ntfs-3g
+       sudo apt install -y ntfs-3g
        sudo sed -i 's/FILESYSTEMS="vfat ext2 ext3 ext4 hfsplus"/FILESYSTEMS="vfat ext2 ext3 ext4 hfsplus ntfs fuseblk"/' /etc/usbmount/usbmount.conf
        sudo sed -i 's/FS_MOUNTOPTIONS=""/FS_MOUNTOPTIONS="-fstype=ntfs-3g,nls=utf8,umask=007,gid=46 -fstype=fuseblk,nls=utf8,umask=007,gid=46 -fstype=vfat,gid=1000,uid=1000,umask=007"/' /etc/usbmount/usbmount.conf
      #+END_SRC
+
+**** Install Docker
+
+     Install packages.
+
+     #+BEGIN_SRC sh
+       sudo apt-get update
+       sudo apt-get install \
+            apt-transport-https \
+            ca-certificates \
+            curl \
+            gnupg2 \
+            software-properties-common
+     #+END_SRC
+
+     Add Docker’s official GPG key and verify that it is correct.
+
+     #+BEGIN_SRC sh
+       curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+       sudo apt-key fingerprint 0EBFCD88
+     #+END_SRC
+
+     Set up the stable repository.
+
+     #+BEGIN_SRC sh
+       sudo add-apt-repository \
+            "deb [arch=armhf] https://download.docker.com/linux/debian \
+          $(lsb_release -cs) \
+          stable"
+     #+END_SRC
+
+     Install Docker.
+
+     #+BEGIN_SRC sh
+       sudo apt-get update
+       sudo apt-get install docker-ce docker-ce-cli containerd.io
+     #+END_SRC
+
+     Create the docker group, add your user, test Docker.
+
+     #+BEGIN_SRC sh
+       sudo groupadd docker
+       sudo usermod -aG docker $USER
+       newgrp docker
+       docker run hello-world
+     #+END_SRC
+
+     Configure Docker to start on boot.
+
+     #+BEGIN_SRC sh
+       sudo systemctl enable docker
+     #+END_SRC
+
+** Save Disk Image
+
+*** Resize Partition using GParted
+
+    Remove SD card from SBC and plug into host computer and run:
+
+    #+BEGIN_SRC sh
+      df -h
+    #+END_SRC
+
+    Verify which device is your SD card (e.g. /dev/sdd1) and open in GParted.
+
+    #+BEGIN_SRC sh
+      sudo apt install gparted
+      sudo gparted /dev/sdd1
+    #+END_SRC
+
+    Unmount partition and click Resize/Move.
+
+    Drag the right bar to the left as much as possible.
+
+    Note that sometimes GParted will need a few MB extra to place some
+    filesystem-related data. Round up size to make room.
+
+    Press Apply in GParted.
+
+*** Use dd to make disk image
+
+    #+BEGIN_SRC sh
+      umount /dev/sdd1
+      sudo dd if=/dev/sdd1 conv=sync,noerror bs=64K | gzip -c > ~/Downloads/phidgetsbc4_docker.img.gz
+    #+END_SRC
+
+** Test Disk Image
+
+    Plug new SD card into host computer and run:
+
+    #+BEGIN_SRC sh
+      df -h
+    #+END_SRC
+
+    After verifying which device is your SD card (e.g. /dev/sdd1), unmount it
+    using the following command:
+
+    #+BEGIN_SRC sh
+      umount /dev/sdd1
+    #+END_SRC
+
+    Next, we can write the image file to the SD card (be very careful using dd!):
+    - if= path to your image
+    - of = where to write output (note: do not include partition number)
+
+    Wait for a long time for command to finish.
+
+    #+BEGIN_SRC sh
+      gunzip -c ~/Downloads/phidgetsbc4_docker.img.gz | sudo dd of=/dev/sdd bs=4M status=progress
+    #+END_SRC
+
+    When dd has finished unmount the SD card:
+
+    #+BEGIN_SRC sh
+      umount /dev/sdd1
+    #+END_SRC
+
+    Remove SD card and insert it into the PhidgetSBC. Connnect PhidgetSBC to the
+    network and connect power.
+
+    #+BEGIN_SRC sh
+      phidget22admin -s
+      ssh phidget@
+    #+END_SRC
 
 ** Emacs Tramp Into SBC
 
