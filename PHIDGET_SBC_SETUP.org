@@ -118,7 +118,7 @@
     Plug SD card into host computer and run:
 
     #+BEGIN_SRC sh
-      df -h
+      lsblk -p
     #+END_SRC
 
     After verifying which device is your SD card (e.g. /dev/sdd1), unmount it
@@ -135,13 +135,7 @@
     Wait for a long time for command to finish.
 
     #+BEGIN_SRC sh
-      sudo dd if=~/Downloads/phidgetsbc4_1.2.1.20190509.img of=/dev/sdd bs=4M status=progress
-    #+END_SRC
-
-    When dd has finished unmount the SD card:
-
-    #+BEGIN_SRC sh
-      umount /dev/sdd1
+      unzip -p phidgetsbc4.zip | sudo dd of=/dev/sdd bs=4M status=progress conv=fsync
     #+END_SRC
 
     Remove SD card and insert it into the PhidgetSBC.
@@ -346,8 +340,8 @@
     Remove SD card from SBC and plug into host computer and run:
 
     #+BEGIN_SRC sh
-      df -h
-    #+END_SRC
+      lsblk -p
+   #+END_SRC
 
     Verify which device is your SD card (e.g. /dev/sdd1) and open in GParted.
 
@@ -369,7 +363,8 @@
 
     #+BEGIN_SRC sh
       umount /dev/sdd1
-      sudo dd if=/dev/sdd1 conv=sync,noerror bs=64K | gzip -c > ~/Downloads/phidgetsbc4_docker.img.gz
+      # sudo dd if=/dev/sdd1 conv=sync,noerror bs=64K  status=progress | gzip -c > ~/Downloads/phidgetsbc4_docker.img.gz
+      sudo dd if=/dev/sdd1 of=~/Downloads/phidgetsbc4_docker.img bs=4M status=progress
     #+END_SRC
 
 ** Test Disk Image
@@ -377,7 +372,7 @@
     Plug new SD card into host computer and run:
 
     #+BEGIN_SRC sh
-      df -h
+      lsblk -p
     #+END_SRC
 
     After verifying which device is your SD card (e.g. /dev/sdd1), unmount it
@@ -394,22 +389,35 @@
     Wait for a long time for command to finish.
 
     #+BEGIN_SRC sh
-      gunzip -c ~/Downloads/phidgetsbc4_docker.img.gz | sudo dd of=/dev/sdd bs=4M status=progress
-    #+END_SRC
-
-    When dd has finished unmount the SD card:
-
-    #+BEGIN_SRC sh
-      umount /dev/sdd1
+      # gunzip -c ~/Downloads/phidgetsbc4_docker.img.gz | sudo dd of=/dev/sdd bs=4M status=progress
+      sudo dd if=~/Downloads/phidgetsbc4_docker.img of=/dev/sdd bs=4M status=progress
+      e2fsck -f -y -v -C 0 '/dev/sdd'
+      resize2fs -p '/dev/sdd'
     #+END_SRC
 
     Remove SD card and insert it into the PhidgetSBC. Connnect PhidgetSBC to the
     network and connect power.
 
+    Check to see that it boots up properly.
+
     #+BEGIN_SRC sh
       phidget22admin -s
-      ssh phidget@
     #+END_SRC
+
+**** Expand SD Card File System
+
+     SSH into the Phidget SBC.
+
+     #+BEGIN_SRC sh
+       ssh root@192.168.0.56
+     #+END_SRC
+
+     On SBC:
+
+     #+BEGIN_SRC sh
+       cd /
+       ./expandfs.sh
+     #+END_SRC
 
 ** Emacs Tramp Into SBC
 
