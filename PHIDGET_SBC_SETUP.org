@@ -112,7 +112,6 @@
     #+BEGIN_SRC sh
       cd ~/Downloads
       wget https://www.phidgets.com/downloads/phidgetsbc/SBC3003/phidgetsbc4.zip
-      unzip phidgetsbc4.zip
     #+END_SRC
 
     Plug SD card into host computer and run:
@@ -135,7 +134,8 @@
     Wait for a long time for command to finish.
 
     #+BEGIN_SRC sh
-      unzip -p phidgetsbc4.zip | sudo dd of=/dev/sdd bs=4M status=progress conv=fsync
+      unzip -p ~/Downloads/phidgetsbc4.zip | sudo dd of=/dev/sdd bs=4M status=progress conv=fsync
+      umount /dev/sdd1
     #+END_SRC
 
     Remove SD card and insert it into the PhidgetSBC.
@@ -341,7 +341,7 @@
 
     #+BEGIN_SRC sh
       lsblk -p
-   #+END_SRC
+    #+END_SRC
 
     Verify which device is your SD card (e.g. /dev/sdd1) and open in GParted.
 
@@ -361,48 +361,68 @@
 
 *** Use dd to make disk image
 
+    Remove SD card from SBC and plug it into host computer and run:
+
     #+BEGIN_SRC sh
-      umount /dev/sdd1
-      # sudo dd if=/dev/sdd1 conv=sync,noerror bs=64K  status=progress | gzip -c > ~/Downloads/phidgetsbc4_docker.img.gz
-      sudo dd if=/dev/sdd1 of=~/Downloads/phidgetsbc4_docker.img bs=4M status=progress
+      sudo fdisk -l /dev/sdd
+    #+END_SRC
+
+    Example output:
+
+    #+BEGIN_SRC sh
+      Disk /dev/sdd: 30.9 GiB, 33201061888 bytes, 64845824 sectors
+      Units: sectors of 1 * 512 = 512 bytes
+      Sector size (logical/physical): 512 bytes / 512 bytes
+      I/O size (minimum/optimal): 512 bytes / 512 bytes
+      Disklabel type: dos
+      Disk identifier: 0x1d723e69
+
+      Device     Boot Start     End Sectors  Size Id Type
+      /dev/sdd1        2048 3688447 3686400  1.8G 83 Linux
+    #+END_SRC
+
+    Make note of Units size (e.g. 512) and End of partition (e.g. 3686400) and
+    use them in the following command (add one to 3686400 = 3686401):
+
+    #+BEGIN_SRC sh
+      sudo dd if=/dev/sdd bs=512 count=3686401 of=~/Downloads/phidgetsbc4_docker.img status=progress
+      gzip -c ~/Downloads/phidgetsbc4_docker.img > ~/Downloads/phidgetsbc4_docker.img.gz
+      rm ~/Downloads/phidgetsbc4_docker.img
     #+END_SRC
 
 ** Test Disk Image
 
-    Plug new SD card into host computer and run:
+   Plug new SD card into host computer and run:
 
-    #+BEGIN_SRC sh
-      lsblk -p
-    #+END_SRC
+   #+BEGIN_SRC sh
+     lsblk -p
+   #+END_SRC
 
-    After verifying which device is your SD card (e.g. /dev/sdd1), unmount it
-    using the following command:
+   After verifying which device is your SD card (e.g. /dev/sdd1), unmount it
+   using the following command:
 
-    #+BEGIN_SRC sh
-      umount /dev/sdd1
-    #+END_SRC
+   #+BEGIN_SRC sh
+     umount /dev/sdd1
+   #+END_SRC
 
-    Next, we can write the image file to the SD card (be very careful using dd!):
-    - if= path to your image
-    - of = where to write output (note: do not include partition number)
+   Next, we can write the image file to the SD card (be very careful using dd!):
+   if= path to your image
+   of = where to write output (note: do not include partition number)
+   Wait for a long time for command to finish.
 
-    Wait for a long time for command to finish.
+   #+BEGIN_SRC sh
+     gunzip -c ~/Downloads/phidgetsbc4_docker.img.gz | sudo dd of=/dev/sdd bs=4M status=progress
+     sudo e2fsck -f -y -v -C 0 '/dev/sdd1'
+   #+END_SRC
 
-    #+BEGIN_SRC sh
-      # gunzip -c ~/Downloads/phidgetsbc4_docker.img.gz | sudo dd of=/dev/sdd bs=4M status=progress
-      sudo dd if=~/Downloads/phidgetsbc4_docker.img of=/dev/sdd bs=4M status=progress
-      e2fsck -f -y -v -C 0 '/dev/sdd'
-      resize2fs -p '/dev/sdd'
-    #+END_SRC
+   Remove SD card and insert it into the PhidgetSBC. Connnect PhidgetSBC to the
+   network and connect power.
 
-    Remove SD card and insert it into the PhidgetSBC. Connnect PhidgetSBC to the
-    network and connect power.
+   Check to see that it boots up properly.
 
-    Check to see that it boots up properly.
-
-    #+BEGIN_SRC sh
-      phidget22admin -s
-    #+END_SRC
+   #+BEGIN_SRC sh
+     phidget22admin -s
+   #+END_SRC
 
 **** Expand SD Card File System
 
@@ -416,7 +436,7 @@
 
      #+BEGIN_SRC sh
        cd /
-       ./expandfs.sh
+       sudo ./expandfs.sh
      #+END_SRC
 
 ** Emacs Tramp Into SBC
