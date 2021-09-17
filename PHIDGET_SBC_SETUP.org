@@ -1,6 +1,6 @@
 #+TITLE: Phidget SBC Setup
 #+AUTHOR: Peter Polidoro
-#+EMAIL: peterpolidoro@gmail.com
+#+EMAIL: peter@polidoro.io
 
 * Phidget SBC User Guide
 

@@ -1,6 +1,6 @@
 #+TITLE: Phidget Snaps
 #+AUTHOR: Peter Polidoro
-#+EMAIL: peterpolidoro@gmail.com
+#+EMAIL: peter@polidoro.io
 
 * Setup Phidget SBC
 
